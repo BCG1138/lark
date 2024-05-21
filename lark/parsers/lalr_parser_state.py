@@ -95,7 +95,7 @@ class ParserState(Generic[StateT]):
                     s = value_stack[-size:]
                     del state_stack[-size:]
                     del value_stack[-size:]
-                    with open('parse_history.txt', 'a') as file:
+                    with open('_tmp_parse_history.txt', 'a') as file:
                         file.write(str(rule) + '\n')
                 else:
                     s = []
