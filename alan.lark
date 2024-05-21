@@ -1,0 +1,99 @@
+start: source
+
+//main structural definitions
+source: SOURCE IDENTIFIER funcdef* body
+funcdef: FUNCTION IDENTIFIER LPAR (type IDENTIFIER (COMMA type IDENTIFIER)*)? RPAR (TO type)? body
+body: BEGIN vardef* statements END
+
+vardef: type IDENTIFIER (COMMA IDENTIFIER)* SEMICOLON
+
+type: (INTEGER | BOOLEAN) ARRAY?
+
+statements: RELAX | statement (SEMICOLON statement)*
+statement: assign | call | if | input | leave | output | while
+
+assign: IDENTIFIER (LBRACK simple RBRACK)? ASSIGNMENT (expression | ARRAY simple)
+call: CALL IDENTIFIER LPAR (expression (COMMA expression)*)? RPAR
+if: IF expression THEN statements elsifs else END
+    elsifs: (ELSIF expression THEN statements)*
+    else: [ELSE statements]?
+input: GET IDENTIFIER (LBRACK simple RBRACK)?
+leave: LEAVE (expression)?
+output: PUT (expression | STRING) (PERIOD (expression | STRING))*
+while: WHILE expression DO statements END
+
+//Expression/Simple/Term/Factor fuckery here
+expression: simple ((EQUALS | NEQUALS | GREATER | LESS | GEQUALS | LEQUALS) simple)?
+simple: (MINUS)? term ((MINUS | PLUS | OR) term)*
+term: factor ((MULTIPLY | DIVIDE | REM | AND) factor)*
+factor: IDENTIFIER (LBRACK simple RBRACK | LPAR (expression (COMMA expression)*)? RPAR)? | NUM | LPAR expression RPAR | NOT factor | TRUE | FALSE
+
+//addops = MINUS | PLUS | OR
+//mulops = MULTIPLY | DIVIDE | REM | AND
+//relops = EQUALS | NEQUALS | GREATER | LESS | GEQUALS | LEQUALS
+
+//Terminals////////////////////////////////////
+//Keywords
+SOURCE: "source"
+FUNCTION: "function"
+TO: "to"
+BOOLEAN: "boolean"
+INTEGER: "integer"
+ARRAY: "array"
+BEGIN: "begin"
+END: "end"
+IF: "if"
+WHILE: "while"
+THEN: "then"
+DO: "do"
+RELAX: "relax"
+CALL: "call"
+ELSIF: "elsif"
+ELSE: "else"
+GET: "get"
+LEAVE: "leave"
+PUT: "put"
+TRUE: "true"
+FALSE: "false"
+NOT: "not"
+
+//ADDOPs
+MINUS: "-"
+PLUS: "+"
+OR: "or"
+
+//MULOPs
+AND: "and"
+REM: "rem"
+DIVIDE: "/"
+MULTIPLY: "*"
+
+//RELOPs
+EQUALS: "="
+LESS: "<"
+GREATER: ">"
+LEQUALS: "<="
+GEQUALS: ">="
+NEQUALS: "<>"
+
+//Misc symbols
+LPAR: "("
+RPAR: ")"
+COMMA: ","
+SEMICOLON: ";"
+ASSIGNMENT: ":="
+PERIOD: "."
+LBRACK: "["
+RBRACK: "]"
+
+//Misc
+WS: /[ \n\t\r]+/
+COMMENT: "{" (/[^{}]*/)"}"
+IDENTIFIER.-100: LETTER (LETTER | DIGIT)? (LETTER | DIGIT)? (LETTER | DIGIT)? (LETTER | DIGIT)? (LETTER | DIGIT)? (LETTER | DIGIT)? (LETTER | DIGIT)? (LETTER | DIGIT)? (LETTER | DIGIT)? (LETTER | DIGIT)? (LETTER | DIGIT)? (LETTER | DIGIT)? (LETTER | DIGIT)? (LETTER | DIGIT)? (LETTER | DIGIT)? (LETTER | DIGIT)? (LETTER | DIGIT)? (LETTER | DIGIT)? (LETTER | DIGIT)? (LETTER | DIGIT)? (LETTER | DIGIT)? (LETTER | DIGIT)? (LETTER | DIGIT)? (LETTER | DIGIT)? (LETTER | DIGIT)? (LETTER | DIGIT)? (LETTER | DIGIT)? (LETTER | DIGIT)? (LETTER | DIGIT)? (LETTER | DIGIT)? (LETTER | DIGIT)? (LETTER | DIGIT)? 
+STRING: "\"" ("\\\"" | "\\n" | "\\t" | "\\\\" | /[ !#-\[\]-~]+/)* "\""
+NUM: DIGIT+
+LETTER: /[a-zA-Z_]+/
+DIGIT: /[0-9]+/
+
+%ignore WS
+%ignore COMMENT

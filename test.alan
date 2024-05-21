@@ -1,0 +1,40 @@
+source trivialtttttttttttttttt{testing}
+function test() begin put "your mom" end
+
+function test2(integer i, boolean array bytes) to boolean 
+begin
+  integer x, y;
+  boolean array bytes2;
+  boolean return_value;
+  x := i + 5;
+  y := test();
+  bytes2 := array i * 2;
+  if bytes[0] = bytes[1] then
+    return_value := true
+  else return_value := false end;
+  leave return_value
+end
+
+begin
+  integer i, j, k,{one} l;
+  integer array grid;
+  boolean is_true;{two}
+  
+  i := 0;
+  while i < 10 do
+    call test();
+    i:= i + 1
+  end;
+
+  call test1({three});
+  call test2(15);
+  call test2(15, j, grid);
+  i := - 15 + 17 * 12;
+  if i > 12 then
+    x := 15
+  elsif i <= 12 then
+    x := test()
+  else
+    put "\"\t\n\\\""
+  end
+end
