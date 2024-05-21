@@ -2,6 +2,8 @@ import os
 import re
 from lark import Lark
 
+rule_metrics = {}
+
 
 def create_parser(grammar_path):
     f = open(grammar_path, "r")
@@ -11,14 +13,17 @@ def create_parser(grammar_path):
     return parser
 
 
-def get_rules(parser):
+def init_rules(parser):
     rules = []
+    # indexed by (rule, production) tuple, contains 4 values
+    # which, in order, are ep, np, ef, nf
     for x in parser.rules:
         pattern = re.compile(r"<(\w+)\s*:\s*([^>]+)>")
         match = pattern.search(str(x))
         rule = match.group(1)
         production = match.group(2)
         rules.append((rule, production))
+        rule_metrics[(rule, production)] = [0, 0, 0, 0]
     return rules
 
 
@@ -32,7 +37,7 @@ def get_rule_usage(parser, testcase_path):
 
     successful_parse = False
 
-	# read testcase
+    # read testcase
     f = open(testcase_path, "r")
     file = f.read()
     f.close()
@@ -43,33 +48,78 @@ def get_rule_usage(parser, testcase_path):
     except:
         successful_parse = False
 
-    # read parse history from _tmp_parse_history.txt
-    with open("_tmp_parse_history.txt", 'r') as file:
-        lines = file.readlines()
-    start_index = len(lines) - 1
-    # for each entry, in reverse order
-    for i in range(start_index, -1, -1):
-        x = lines[i].rstrip()
-        # check if juck is reached
-        if re.search(r' _[a-zA-Z]', x) or re.search(r'<_[a-zA-Z]', x):
-            break
-        # get rule and its production used in that step
-        pattern = re.compile(r"<(\w+)\s*:\s*([^>]+)>")
-        match = pattern.search(x)
-        rule = match.group(1)
-        production = match.group(2)
-        rules_used.insert(0, (rule, production))
+    try:
+        # read parse history from _tmp_parse_history.txt
+        with open("_tmp_parse_history.txt", 'r') as file:
+            lines = file.readlines()
+        start_index = len(lines) - 1
+        # for each entry, in reverse order
+        for i in range(start_index, -1, -1):
+            x = lines[i].rstrip()
+            # check if juck is reached
+            if re.search(r' _[a-zA-Z]', x) or re.search(r'<_[a-zA-Z]', x):
+                break
+            # get rule and its production used in that step
+            pattern = re.compile(r"<(\w+)\s*:\s*([^>]+)>")
+            match = pattern.search(x)
+            rule = match.group(1)
+            production = match.group(2)
+            rules_used.insert(0, (rule, production))
+    except:
+        # if _tmp_parse_history.txt doesn't exist, no rules were applied
+        pass
 
-	# delete temporary parse history file
+        # delete temporary parse history file
     try:
         os.remove("_tmp_parse_history.txt")
     except:
         pass
     return (successful_parse, rules_used)
 
+def run_testcase_dir(parser, directory, is_positive):
+    for filename in os.listdir(directory):
+        file_path = os.path.join(directory, filename)
+        if os.path.isfile(file_path):
+            result = get_rule_usage(parser, file_path)
+            # passed
+            if result[0] == (is_positive):
+                for x in result[1]:
+                    # increment ep
+                    rule_metrics[x][0] += 1
+                for x in rules:
+                    if x not in result[1]:
+                        # increment np
+                        rule_metrics[x][2] += 1
+            elif result[0] == (not is_positive):
+                for x in result[1]:
+                    # increment ep
+                    rule_metrics[x][1] += 1
+                for x in rules:
+                    if x not in result[1]:
+                        # increment np
+                        rule_metrics[x][3] += 1
 
 parser = create_parser("alan.lark")
-rules = get_rules(parser)
+rules = init_rules(parser)
+run_testcase_dir(parser, "../alan-tests/passing", True)
+print("Done with passing")
+run_testcase_dir(parser, "../alan-tests/failing0", False)
+print("Done with failing0")
+run_testcase_dir(parser, "../alan-tests/failing1", False)
+print("Done with failing1")
+run_testcase_dir(parser, "../alan-tests/failing2", False)
+print("Done with failing2")
+""" run_testcase_dir(parser, "../alan-tests/special-passing", True)
+print("Done with special-passing")
+run_testcase_dir(parser, "../alan-tests/special-failing", False)
+print("Done with special-failing") """
 
-result = get_rule_usage(parser, "test.alan")
-print(result[1])
+# calculate suspiciousness scores
+# 0:ep, 1:np, 2:ef, 3:nf
+with open("results.txt", 'a') as results:
+    for x in rule_metrics:
+        vals = rule_metrics[x]
+        tarantula_top = ((vals[2]) / (vals[2] + vals[3]))
+        tarantula_bottom = tarantula_top + ((vals[0]) / (vals[0] + vals[1] + 0.000000000000000000001))
+        tarantula = tarantula_top / tarantula_bottom
+        results.write(str(x) + " tarantula score = " + str(tarantula) + "\n")

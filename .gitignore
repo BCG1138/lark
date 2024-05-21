@@ -12,3 +12,4 @@ tags
 /build
 docs/_build
 docs/examples
+_tmp_parse_history.txt
