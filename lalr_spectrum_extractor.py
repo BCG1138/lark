@@ -104,49 +104,60 @@ def run_testcase_dir(parser, directory, is_positive):
                         # increment np
                         rule_metrics[x][3] += 1
 
+def compile_and_write_results():
+    try:
+        os.remove("results.txt")
+    except:
+        pass
+    # calculate suspiciousness scores
+    # metrics: 0:ep, 1:np, 2:ef, 3:nf
+    # sus_scores: 0:tarantula, 1:jaccard, 2:ochiai, 3:dstar
+    with open("results.txt", 'a') as results:
+        for x in rule_metrics:
+            vals = rule_metrics[x]
+
+            tarantula_top = (vals[2]) / (vals[2] + vals[3])
+            tarantula_bottom = tarantula_top + ((vals[0]) / (vals[0] + vals[1] + 0.000000000000000000001)) + 0.000000000000000000001
+            tarantula = tarantula_top / tarantula_bottom
+            sus_scores[x][0] = tarantula
+            
+            jaccard_bottom = vals[2] + vals[3] + vals[0] + 0.000000000000000000001
+            jaccard = (vals[2]) / jaccard_bottom
+            sus_scores[x][1] = jaccard
+
+            ochiai_bottom = math.sqrt(vals[2] + vals[3]) * (vals[2] + vals[0]) + 0.000000000000000000001
+            ochiai = (vals[2]) / ochiai_bottom
+            sus_scores[x][2] = ochiai
+
+            results.write(str(x) + "\n")
+            results.write("\tTarantula: " + str(sus_scores[x][0]) + "\n")
+            results.write("\tJaccarda: " + str(sus_scores[x][1]) + "\n")
+            results.write("\tOchiai: " + str(sus_scores[x][2]) + "\n")
+
+            print(str(x) + " metrics = " + str(rule_metrics[x]))
+
+def run_normal():
+    run_testcase_dir(parser, "../alan-tests/passing", True)
+    print("Done with passing")
+    run_testcase_dir(parser, "../alan-tests/failing0", False)
+    print("Done with failing0")
+    run_testcase_dir(parser, "../alan-tests/failing1", False)
+    print("Done with failing1")
+    run_testcase_dir(parser, "../alan-tests/failing2", False)
+    print("Done with failing2")
+
+def run_special():
+    run_testcase_dir(parser, "../alan-tests/special-passing", True)
+    print("Done with special-passing")
+    run_testcase_dir(parser, "../alan-tests/special-failing", False)
+    print("Done with special-failing")
+
 parser = create_parser("alan.lark")
 rules = init_rules(parser)
-run_testcase_dir(parser, "../alan-tests/passing", True)
-print("Done with passing")
-run_testcase_dir(parser, "../alan-tests/failing0", False)
-print("Done with failing0")
-run_testcase_dir(parser, "../alan-tests/failing1", False)
-print("Done with failing1")
-run_testcase_dir(parser, "../alan-tests/failing2", False)
-print("Done with failing2")
-""" run_testcase_dir(parser, "../alan-tests/special-passing", True)
-print("Done with special-passing")
-run_testcase_dir(parser, "../alan-tests/special-failing", False)
-print("Done with special-failing") """
+#r = get_rule_usage(parser, "../alan-tests/failed-passings/000614_random.alan")
+#for x in r[1]:
+#    print(str(x))
 
-try:
-    os.remove("results.txt")
-except:
-    pass
-
-# calculate suspiciousness scores
-# metrics: 0:ep, 1:np, 2:ef, 3:nf
-# sus_scores: 0:tarantula, 1:jaccard, 2:ochiai, 3:dstar
-with open("results.txt", 'a') as results:
-    for x in rule_metrics:
-        vals = rule_metrics[x]
-
-        tarantula_top = (vals[2]) / (vals[2] + vals[3])
-        tarantula_bottom = tarantula_top + ((vals[0]) / (vals[0] + vals[1] + 0.000000000000000000001)) + 0.000000000000000000001
-        tarantula = tarantula_top / tarantula_bottom
-        sus_scores[x][0] = tarantula
-        
-        jaccard_bottom = vals[2] + vals[3] + vals[0] + 0.000000000000000000001
-        jaccard = (vals[2]) / jaccard_bottom
-        sus_scores[x][1] = jaccard
-
-        ochiai_bottom = math.sqrt(vals[2] + vals[3]) * (vals[2] + vals[0]) + 0.000000000000000000001
-        ochiai = (vals[2]) / ochiai_bottom
-        sus_scores[x][2] = ochiai
-
-        results.write(str(x) + "\n")
-        results.write("\tTarantula: " + str(sus_scores[x][0]) + "\n")
-        results.write("\tJaccarda: " + str(sus_scores[x][1]) + "\n")
-        results.write("\tOchiai: " + str(sus_scores[x][2]) + "\n")
-
-        print(str(x) + " metrics = " + str(rule_metrics[x]))
+run_normal()
+run_special()
+compile_and_write_results()
