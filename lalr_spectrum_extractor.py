@@ -1,8 +1,10 @@
 import os
 import re
+import math
 from lark import Lark
 
 rule_metrics = {}
+sus_scores = {}
 
 
 def create_parser(grammar_path):
@@ -24,6 +26,7 @@ def init_rules(parser):
         production = match.group(2)
         rules.append((rule, production))
         rule_metrics[(rule, production)] = [0, 0, 0, 0]
+        sus_scores[(rule, production)] = [0, 0, 0, 0]
     return rules
 
 
@@ -91,6 +94,7 @@ def run_testcase_dir(parser, directory, is_positive):
                         # increment np
                         rule_metrics[x][2] += 1
             elif result[0] == (not is_positive):
+                print(file_path + " failed")
                 for x in result[1]:
                     # increment ep
                     rule_metrics[x][1] += 1
@@ -115,11 +119,20 @@ run_testcase_dir(parser, "../alan-tests/special-failing", False)
 print("Done with special-failing") """
 
 # calculate suspiciousness scores
-# 0:ep, 1:np, 2:ef, 3:nf
+# metrics: 0:ep, 1:np, 2:ef, 3:nf
+# sus_scores: 0:tarantula, 1:jaccard, 2:ochiai, 3:dstar
 with open("results.txt", 'a') as results:
     for x in rule_metrics:
         vals = rule_metrics[x]
         tarantula_top = ((vals[2]) / (vals[2] + vals[3]))
         tarantula_bottom = tarantula_top + ((vals[0]) / (vals[0] + vals[1] + 0.000000000000000000001))
         tarantula = tarantula_top / tarantula_bottom
-        results.write(str(x) + " tarantula score = " + str(tarantula) + "\n")
+        sus_scores[x][0] = tarantula
+        jaccard = (vals[2]) / (vals[2] + vals[3] + vals[0])
+        sus_scores[1] = jaccard
+        ochiai = (vals[2]) / (math.sqrt((vals[2] + vals[3]) * (vals[2] + vals[0])))
+        sus_scores[2] = ochiai
+        results.write(str(x) + "\n")
+        results.write("\tTarantula: " + str(sus_scores[x][0]) + "\n")
+        results.write("\tJaccarda: " + str(sus_scores[x][1]) + "\n")
+        results.write("\tOchiai: " + str(sus_scores[x][2]) + "\n")
