@@ -72,7 +72,8 @@ def get_rule_usage(parser, testcase_path):
         state_stack = e.interactive_parser.parser_state.state_stack
         pattern = r"<\s*([^:]+?)\s*:\s*([^>]+?)\s*>"
         for x in state_stack:
-            matches = re.findall(pattern, str(x).replace("*", ""))
+            print(str(x) + "\n")
+            matches = re.findall(pattern, str(x).replace("* ", ""))
             for rule, production in matches:
                 if rule in rules and  (rule, production) not in rules_used:
                     rules_used.append((rule, production))
@@ -160,7 +161,7 @@ def compile_and_write_results():
             results.write("\tJaccarda: " + str(sus_scores[x][1]) + "\n")
             results.write("\tOchiai: " + str(sus_scores[x][2]) + "\n")
 
-            print(str(x) + " metrics = " + str(rule_metrics[x]))
+            #print(str(x) + " metrics = " + str(rule_metrics[x]))
 
 def run_normal():
     run_testcase_dir(parser, "../alan-tests/passing", True)
@@ -180,7 +181,7 @@ def run_special():
 
 parser = create_parser("alan.lark")
 rules = init_rules(parser)
-r = get_rule_usage(parser, "test.alan")
+#r = get_rule_usage(parser, "test.alan")
 
 run_normal()
 compile_and_write_results()
