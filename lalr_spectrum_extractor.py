@@ -50,10 +50,11 @@ def get_rule_usage(parser, testcase_path):
     except UnexpectedToken as e:
         successful_parse = False
         state_stack = e.interactive_parser.parser_state.state_stack
-        pattern = r"<(\w+)\s*:\s*([^>]+)>"
+        pattern = r"<\w+\s\:\s*\w+\s\*\s*\w+>"
         for x in state_stack:
             matches = re.findall(pattern, str(x))
             for rule, production in matches:
+                print((rule, production))
                 production = production.replace("* ", "")
                 if rule in rules and  (rule, production) not in rules_used:
                     rules_used.append((rule, production))
