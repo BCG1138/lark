@@ -118,18 +118,23 @@ print("Done with special-passing")
 run_testcase_dir(parser, "../alan-tests/special-failing", False)
 print("Done with special-failing") """
 
+try:
+    os.remove("results.txt")
+except:
+    pass
+
 # calculate suspiciousness scores
 # metrics: 0:ep, 1:np, 2:ef, 3:nf
 # sus_scores: 0:tarantula, 1:jaccard, 2:ochiai, 3:dstar
 with open("results.txt", 'a') as results:
     for x in rule_metrics:
         vals = rule_metrics[x]
-        tarantula_top = ((vals[2]) / (vals[2] + vals[3]))
+        tarantula_top = (vals[2]) / (vals[2] + vals[3])
         tarantula_bottom = tarantula_top + ((vals[0]) / (vals[0] + vals[1] + 0.000000000000000000001))
         tarantula = tarantula_top / tarantula_bottom
         sus_scores[x][0] = tarantula
         jaccard_bottom = vals[2] + vals[3] + vals[0]
-        jaccard = vals[2] / jaccard_bottom
+        jaccard = (vals[2]) / jaccard_bottom
         sus_scores[x][1] = jaccard
         ochiai_bottom = math.sqrt(vals[2] + vals[3]) * (vals[2] + vals[0])
         ochiai = (vals[2]) / ochiai_bottom
