@@ -50,7 +50,7 @@ def get_rule_usage(parser, testcase_path):
     except UnexpectedToken as e:
         successful_parse = False
         state_stack = e.interactive_parser.parser_state.state_stack
-        pattern = r"<(\w+)\s*:\s*([^*]*?)\*\s*(.*)>"
+        pattern = r"<(\w+)\s*:\s*([^>]+)>"
         for x in state_stack:
             matches = re.findall(pattern, str(x))
             for rule, production in matches:
@@ -66,7 +66,7 @@ def get_rule_usage(parser, testcase_path):
         for i in range(start_index, -1, -1):
             x = lines[i].rstrip()
             # check if juck is reached
-            if re.search(r' _[a-zA-Z]', x) or re.search(r'<_[a-zA-Z]', x):
+            if re.search(r'[ <]_[a-zA-Z]', x):
                 break
             # get rule and its production used in that step
             pattern = re.compile(r"<(\w+)\s*:\s*([^>]+)>")
