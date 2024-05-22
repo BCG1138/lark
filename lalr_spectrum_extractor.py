@@ -29,26 +29,6 @@ def init_rules(parser):
         sus_scores[(rule, production)] = [0, 0, 0, 0]
     return rules
 
-def construct_states():
-    index = 0
-    with open("items.txt", 'r') as file:
-        lines = file.readlines()
-    pattern = r"<\s*([^:]+?)\s*:\s*([^>]+?)\s*>"
-    for line in lines:
-        matches = re.findall(pattern, line.replace("*", ""))
-        items = []
-        for rule, production in matches:
-            if (rule, production) not in items:
-                items.append((rule, production))
-        states[index] = items
-        index += 1
-    try:
-        os.remove("items.txt")
-        #pass
-    except:
-        pass
-
-
 def get_rule_usage(parser, testcase_path):
     try:
         os.remove("_tmp_parse_history.txt")
@@ -70,10 +50,11 @@ def get_rule_usage(parser, testcase_path):
     except UnexpectedToken as e:
         successful_parse = False
         state_stack = e.interactive_parser.parser_state.state_stack
-        pattern = r"<\s*([^:]+?)\s*:\s*([^>]+?)\s*>"
+        pattern = r"<(\w+)\s*:\s*([^*]*?)\*\s*(.*)>"
         for x in state_stack:
-            matches = re.findall(pattern, str(x).replace("* ", ""))
+            matches = re.findall(pattern, str(x))
             for rule, production in matches:
+                production = production.replace("* ", "")
                 if rule in rules and  (rule, production) not in rules_used:
                     rules_used.append((rule, production))
     try:
