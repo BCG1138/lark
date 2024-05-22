@@ -74,7 +74,7 @@ def get_rule_usage(parser, testcase_path):
         for x in state_stack:
             matches = re.findall(pattern, str(x).replace("*", ""))
             for rule, production in matches:
-                if rule in rules and (rule, production) not in rules_used:
+                if rule in rules and  (rule, production) not in rules_used:
                     rules_used.append((rule, production))
     try:
         # read parse history from _tmp_parse_history.txt
@@ -140,17 +140,18 @@ def compile_and_write_results():
     with open("results.txt", 'a') as results:
         for x in rule_metrics:
             vals = rule_metrics[x]
+            div_by_zero_fix = 0.000000000000000000001
 
-            tarantula_top = (vals[2]) / (vals[2] + vals[3])
-            tarantula_bottom = tarantula_top + ((vals[0]) / (vals[0] + vals[1] + 0.000000000000000000001)) + 0.000000000000000000001
+            tarantula_top = (vals[2]) / (vals[2] + vals[3] + div_by_zero_fix)
+            tarantula_bottom = tarantula_top + ((vals[0]) / (vals[0] + vals[1] + div_by_zero_fix)) + div_by_zero_fix
             tarantula = tarantula_top / tarantula_bottom
             sus_scores[x][0] = tarantula
             
-            jaccard_bottom = vals[2] + vals[3] + vals[0] + 0.000000000000000000001
+            jaccard_bottom = vals[2] + vals[3] + vals[0] + div_by_zero_fix
             jaccard = (vals[2]) / jaccard_bottom
             sus_scores[x][1] = jaccard
 
-            ochiai_bottom = math.sqrt(vals[2] + vals[3]) * (vals[2] + vals[0]) + 0.000000000000000000001
+            ochiai_bottom = math.sqrt(vals[2] + vals[3]) * (vals[2] + vals[0]) + div_by_zero_fix
             ochiai = (vals[2]) / ochiai_bottom
             sus_scores[x][2] = ochiai
 
