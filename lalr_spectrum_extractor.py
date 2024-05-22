@@ -92,12 +92,13 @@ def run_testcase_dir(parser, directory, is_positive):
                 for x in rules:
                     if x not in result[1]:
                         # increment np
-                        rule_metrics[x][2] += 1
+                        rule_metrics[x][1] += 1
+            #failed
             elif result[0] == (not is_positive):
                 print(file_path + " failed")
                 for x in result[1]:
                     # increment ep
-                    rule_metrics[x][1] += 1
+                    rule_metrics[x][2] += 1
                 for x in rules:
                     if x not in result[1]:
                         # increment np
