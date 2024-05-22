@@ -50,12 +50,15 @@ def get_rule_usage(parser, testcase_path):
     except UnexpectedToken as e:
         successful_parse = False
         state_stack = e.interactive_parser.parser_state.state_stack
-        pattern = r"<\w+\s\:\s*\w+\s\*\s*\w+>"
+        pattern = r"<\w+\s*\:\s*[\w][ \w]*\s\*\s*[\w][ \w]*>"
         for x in state_stack:
             matches = re.findall(pattern, str(x))
-            for rule, production in matches:
-                print((rule, production))
-                production = production.replace("* ", "")
+            for r in matches:
+                r = r.replace("* ", "")
+                pattern = re.compile(r"<(\w+)\s*:\s*([^>]+)>")
+                match = pattern.search(r)
+                rule = match.group(1)
+                production = match.group(2)
                 if rule in rules and  (rule, production) not in rules_used:
                     rules_used.append((rule, production))
     try:
@@ -162,7 +165,7 @@ def run_special():
 
 parser = create_parser("alan.lark")
 rules = init_rules(parser)
-#r = get_rule_usage(parser, "test.alan")
+r = get_rule_usage(parser, "test.alan")
 
-run_normal()
-compile_and_write_results()
+#run_normal()
+#compile_and_write_results()
