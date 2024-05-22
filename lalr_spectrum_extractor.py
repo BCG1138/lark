@@ -5,6 +5,7 @@ from lark import Lark, UnexpectedToken
 
 rule_metrics = {}
 sus_scores = {}
+rules = []
 
 
 def create_parser(grammar_path):
@@ -16,18 +17,19 @@ def create_parser(grammar_path):
 
 
 def init_rules(parser):
-    rules = []
     # indexed by (rule, production) tuple, contains 4 values
     # which, in order, are ep, np, ef, nf
     for x in parser.rules:
-        pattern = re.compile(r"<(\w+)\s*:\s*([^>]+)>")
-        match = pattern.search(str(x))
-        rule = match.group(1)
-        production = match.group(2)
+        #pattern = re.compile(r"<(\w+)\s*:\s*([^>]+)>")
+        #print(x)
+        clean = str(x).strip('<>')
+        rule, production = clean.split(":")
+        rule = rule.strip()
+        production = production.strip()
         rules.append((rule, production))
+        #print((rule, production))
         rule_metrics[(rule, production)] = [0, 0, 0, 0]
         sus_scores[(rule, production)] = [0, 0, 0, 0]
-    return rules
 
 def get_rule_usage(parser, testcase_path):
     try:
@@ -55,11 +57,12 @@ def get_rule_usage(parser, testcase_path):
             matches = re.findall(pattern, str(x))
             for r in matches:
                 r = str(r).replace("* ", "")
-                pattern = re.compile(r"<(\w+)\s*:\s*([^>]+)>")
-                match = pattern.search(r)
-                rule = match.group(1)
-                production = match.group(2)
-                if rule in rules and  (rule, production) not in rules_used:
+                clean = str(r).strip('<>')
+                rule, production = clean.split(":")
+                rule = rule.strip()
+                production = production.strip()
+                #print((rule, production))
+                if (rule, production) in rules:
                     rules_used.append((rule, production))
     try:
         # read parse history from _tmp_parse_history.txt
@@ -164,8 +167,8 @@ def run_special():
     print("Done with special-failing")
 
 parser = create_parser("alan.lark")
-rules = init_rules(parser)
-r = get_rule_usage(parser, "test.alan")
+init_rules(parser)
+#r = get_rule_usage(parser, "test.alan")
 
-#run_normal()
-#compile_and_write_results()
+run_normal()
+compile_and_write_results()
