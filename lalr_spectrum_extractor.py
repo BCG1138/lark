@@ -72,7 +72,6 @@ def get_rule_usage(parser, testcase_path):
         state_stack = e.interactive_parser.parser_state.state_stack
         pattern = r"<\s*([^:]+?)\s*:\s*([^>]+?)\s*>"
         for x in state_stack:
-            print(str(x) + "\n")
             matches = re.findall(pattern, str(x).replace("* ", ""))
             for rule, production in matches:
                 if rule in rules and  (rule, production) not in rules_used:
