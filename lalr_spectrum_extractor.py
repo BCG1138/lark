@@ -132,7 +132,7 @@ with open("results.txt", 'a') as results:
         vals = rule_metrics[x]
 
         tarantula_top = (vals[2]) / (vals[2] + vals[3])
-        tarantula_bottom = tarantula_top + ((vals[0]) / (vals[0] + vals[1] + 0.000000000000000000001))
+        tarantula_bottom = tarantula_top + ((vals[0]) / (vals[0] + vals[1] + 0.000000000000000000001)) + 0.000000000000000000001
         tarantula = tarantula_top / tarantula_bottom
         sus_scores[x][0] = tarantula
         
