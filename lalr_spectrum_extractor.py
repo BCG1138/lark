@@ -54,7 +54,7 @@ def get_rule_usage(parser, testcase_path):
         for x in state_stack:
             matches = re.findall(pattern, str(x))
             for r in matches:
-                r = r.replace("* ", "")
+                r = str(r).replace("* ", "")
                 pattern = re.compile(r"<(\w+)\s*:\s*([^>]+)>")
                 match = pattern.search(r)
                 rule = match.group(1)
