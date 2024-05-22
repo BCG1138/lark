@@ -134,19 +134,18 @@ with open("results.txt", 'a') as results:
         tarantula_bottom = tarantula_top + ((vals[0]) / (vals[0] + vals[1] + 0.000000000000000000001))
         tarantula = tarantula_top / tarantula_bottom
         sus_scores[x][0] = tarantula
+        
+        jaccard_bottom = vals[2] + vals[3] + vals[0]
+        jaccard = (vals[2]) / jaccard_bottom
+        sus_scores[x][1] = jaccard
 
-	jaccard_bottom = vals[2] + vals[3] + vals[0]
-	jaccard = (vals[2]) / jaccard_bottom
-	sus_scores[x][1] = jaccard
+        ochiai_bottom = math.sqrt(vals[2] + vals[3]) * (vals[2] + vals[0])
+        ochiai = (vals[2]) / ochiai_bottom
+        sus_scores[x][2] = ochiai
 
-	ochiai_bottom = math.sqrt(vals[2] + vals[3]) * (vals[2] + vals[0])
-	ochiai = (vals[2]) / ochiai_bottom
-	sus_scores[x][2] = ochiai
+        results.write(str(x) + "\n")
+        results.write("\tTarantula: " + str(sus_scores[x][0]) + "\n")
+        results.write("\tJaccarda: " + str(sus_scores[x][1]) + "\n")
+        results.write("\tOchiai: " + str(sus_scores[x][2]) + "\n")
 
-
-	results.write(str(x) + "\n")
-	results.write("\tTarantula: " + str(sus_scores[x][0]) + "\n")
-	results.write("\tJaccarda: " + str(sus_scores[x][1]) + "\n")
-	results.write("\tOchiai: " + str(sus_scores[x][2]) + "\n")
-
-	print(str(x) + " metrics = " + str(rule_metrics[x]))
+        print(str(x) + " metrics = " + str(rule_metrics[x]))
