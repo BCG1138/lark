@@ -14,9 +14,9 @@ statement: assign | call | if | input | leave | output | while
 
 assign: IDENTIFIER (LBRACK simple RBRACK)? ASSIGNMENT (expression | ARRAY simple)
 call: CALL IDENTIFIER LPAR (expression (COMMA expression)*)? RPAR
-if: IF expression THEN statements elsifs else END
-    elsifs: (ELSIF expression THEN statements)*
-    else: [ELSE statements]?
+if: IF expression THEN statements elsifs? else? END
+    elsifs: (ELSIF expression THEN statements)+
+    else: ELSE statements
 input: GET IDENTIFIER (LBRACK simple RBRACK)?
 leave: LEAVE (expression)?
 output: PUT (expression | STRING) (PERIOD (expression | STRING))*
