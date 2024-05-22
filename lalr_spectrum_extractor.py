@@ -1,7 +1,7 @@
 import os
 import re
 import math
-from lark import Lark
+from lark import Lark, UnexpectedToken
 
 rule_metrics = {}
 sus_scores = {}
@@ -29,6 +29,25 @@ def init_rules(parser):
         sus_scores[(rule, production)] = [0, 0, 0, 0]
     return rules
 
+def construct_states():
+    index = 0
+    with open("items.txt", 'r') as file:
+        lines = file.readlines()
+    pattern = r"<\s*([^:]+?)\s*:\s*([^>]+?)\s*>"
+    for line in lines:
+        matches = re.findall(pattern, line.replace("*", ""))
+        items = []
+        for rule, production in matches:
+            if (rule, production) not in items:
+                items.append((rule, production))
+        states[index] = items
+        index += 1
+    try:
+        os.remove("items.txt")
+        #pass
+    except:
+        pass
+
 
 def get_rule_usage(parser, testcase_path):
     try:
@@ -48,9 +67,15 @@ def get_rule_usage(parser, testcase_path):
     try:
         parser.parse(file)
         successful_parse = True
-    except:
+    except UnexpectedToken as e:
         successful_parse = False
-
+        state_stack = e.interactive_parser.parser_state.state_stack
+        pattern = r"<\s*([^:]+?)\s*:\s*([^>]+?)\s*>"
+        for x in state_stack:
+            matches = re.findall(pattern, str(x).replace("*", ""))
+            for rule, production in matches:
+                if rule in rules and (rule, production) not in rules_used:
+                    rules_used.append((rule, production))
     try:
         # read parse history from _tmp_parse_history.txt
         with open("_tmp_parse_history.txt", 'r') as file:
@@ -154,10 +179,7 @@ def run_special():
 
 parser = create_parser("alan.lark")
 rules = init_rules(parser)
-#r = get_rule_usage(parser, "../alan-tests/failed-passings/000614_random.alan")
-#for x in r[1]:
-#    print(str(x))
+r = get_rule_usage(parser, "test.alan")
 
 run_normal()
-run_special()
 compile_and_write_results()

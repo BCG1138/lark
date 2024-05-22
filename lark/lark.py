@@ -163,7 +163,7 @@ class LarkOptions(Serialize):
     # - Potentially in `_LOAD_ALLOWED_OPTIONS` below this class, when the option doesn't change how the grammar is loaded
     # - Potentially in `lark.tools.__init__`, if it makes sense, and it can easily be passed as a cmd argument
     _defaults: Dict[str, Any] = {
-        'debug': False,
+        'debug': True,
         'strict': False,
         'keep_all_tokens': False,
         'tree_class': None,
