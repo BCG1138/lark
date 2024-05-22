@@ -129,9 +129,9 @@ with open("results.txt", 'a') as results:
         tarantula = tarantula_top / tarantula_bottom
         sus_scores[x][0] = tarantula
         jaccard = (vals[2]) / (vals[2] + vals[3] + vals[0])
-        sus_scores[1] = jaccard
+        sus_scores[x][1] = jaccard
         ochiai = (vals[2]) / (math.sqrt((vals[2] + vals[3]) * (vals[2] + vals[0])))
-        sus_scores[2] = ochiai
+        sus_scores[x][2] = ochiai
         results.write(str(x) + "\n")
         results.write("\tTarantula: " + str(sus_scores[x][0]) + "\n")
         results.write("\tJaccarda: " + str(sus_scores[x][1]) + "\n")
