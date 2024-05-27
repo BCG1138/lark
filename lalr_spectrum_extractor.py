@@ -1,6 +1,7 @@
 import os
 import re
 import math
+import copy
 from lark import Lark, UnexpectedToken
 
 rule_metrics = {}
@@ -144,12 +145,74 @@ def compile_and_write_results():
             ochiai = (vals[2]) / ochiai_bottom
             sus_scores[x][2] = ochiai
 
-            results.write(str(x) + "\n")
-            results.write("\tTarantula: " + str(sus_scores[x][0]) + "\n")
-            results.write("\tJaccarda: " + str(sus_scores[x][1]) + "\n")
-            results.write("\tOchiai: " + str(sus_scores[x][2]) + "\n")
+            dstar_top = vals[2] ** 2
+            dstar_bottom = vals[3] + vals[0] + div_by_zero_fix
+            dstar = dstar_top / dstar_bottom
+            sus_scores[x][3] = dstar
 
-            #print(str(x) + " metrics = " + str(rule_metrics[x]))
+            #results.write(str(x) + "\n")
+            #results.write("\tTarantula: " + str(sus_scores[x][0]) + "\n")
+            #results.write("\tJaccarda: " + str(sus_scores[x][1]) + "\n")
+            #results.write("\tOchiai: " + str(sus_scores[x][2]) + "\n")
+            #results.write("\DStar: " + str(sus_scores[x][2]) + "\n")
+
+        # rank rules by sus scores
+        tarantula_scores = []
+        trules = copy.deepcopy(rules)
+        jaccarda_scores = []
+        jrules = copy.deepcopy(rules)
+        ochiai_scores = []
+        orules = copy.deepcopy(rules)
+        dstar_scores = []
+        drules = copy.deepcopy(rules)
+        for x in rules:
+            tarantula_scores.append(sus_scores[x][0])
+            jaccarda_scores.append(sus_scores[x][1])
+            ochiai_scores.append(sus_scores[x][2])
+            dstar_scores.append(sus_scores[x][3])
+        n = len(rules)
+        # tarantula
+        for i in range(n):
+            for j in range(0, n-i-1):
+                if tarantula_scores[j] < tarantula_scores[j+1]:
+                    #forbidden swapping
+                    tarantula_scores[j], tarantula_scores[j+1] = tarantula_scores[j+1], tarantula_scores[j]
+                    trules[j], trules[j+1] = trules[j+1], trules[j]
+        # jaccarda
+        for i in range(n):
+            for j in range(0, n-i-1):
+                if jaccarda_scores[j] < jaccarda_scores[j+1]:
+                    #forbidden swapping
+                    jaccarda_scores[j], jaccarda_scores[j+1] = jaccarda_scores[j+1], jaccarda_scores[j]
+                    jrules[j], jrules[j+1] = jrules[j+1], jrules[j]
+        # ochiai
+        for i in range(n):
+            for j in range(0, n-i-1):
+                if ochiai_scores[j] < ochiai_scores[j+1]:
+                    #forbidden swapping
+                    ochiai_scores[j], ochiai_scores[j+1] = ochiai_scores[j+1], ochiai_scores[j]
+                    orules[j], orules[j+1] = orules[j+1], orules[j]
+        # dstar
+        for i in range(n):
+            for j in range(0, n-i-1):
+                if dstar_scores[j] < dstar_scores[j+1]:
+                    #forbidden swapping
+                    dstar_scores[j], dstar_scores[j+1] = dstar_scores[j+1], dstar_scores[j]
+                    drules[j], drules[j+1] = drules[j+1], drules[j]
+
+        results.write("Ranking by tarantula\n")
+        for i in range(n):
+            results.write(str(trules[i]) + " : " + str(tarantula_scores[i]) + "\n")
+        results.write("\nRanking by jaccarda\n")
+        for i in range(n):
+            results.write(str(jrules[i]) + " : " + str(jaccarda_scores[i]) + "\n")
+        results.write("\nRanking by ochiai\n")
+        for i in range(n):
+            results.write(str(orules[i]) + " : " + str(ochiai_scores[i]) + "\n")
+        results.write("\nRanking by dstar\n")
+        for i in range(n):
+            results.write(str(drules[i]) + " : " + str(dstar_scores[i]) + "\n")
+    
 
 def run_normal():
     run_testcase_dir(parser, "../alan-tests/passing", True)
@@ -180,5 +243,5 @@ run_testcase_dir(parser, "toy_grammar/testsuite", True)
 
 compile_and_write_results()
 
-for x in rule_metrics:
-    print(str(x) + " : " + str(rule_metrics[x]))
+#for x in rule_metrics:
+#    print(str(x) + " : " + str(rule_metrics[x]))
