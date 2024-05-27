@@ -1,0 +1,1 @@
+program a = {if a then sleep else sleep;}.

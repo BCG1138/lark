@@ -1,0 +1,46 @@
+start: prog
+
+prog: PROGRAM ID EQUALS block PERIOD
+
+block: LBRACK decls stmts RBRACK | LBRACK stmts RBRACK | LBRACK decls RBRACK | LBRACK RBRACK 
+
+decls: decl SEMICOLON decls | decl SEMICOLON
+decl: VAR ID COLON type
+type: BOOL | INT
+
+stmts: stmt SEMICOLON stmts | stmt SEMICOLON
+
+//stmt: SLEEP | IF expr THEN stmt | IF expr THEN stmt ELSE stmt | WHILE expr DO stmt | ID EQUALS expr | block
+stmt: SLEEP | IF expr THEN stmt ELSE stmt | WHILE expr DO block | ID EQUALS expr | block
+
+expr: expr EQUALS expr | expr PLUS expr | LPAR expr RPAR | ID | NUM
+
+//Lexical tokens
+PROGRAM: "program"
+EQUALS: "="
+COLON: ":"
+LBRACK: "{"
+RBRACK: "}"
+LPAR: "("
+RPAR: ")"
+VAR: "var"
+BOOL: "bool"
+INT: "int"
+SLEEP: "sleep"
+SEMICOLON: ";"
+IF: "if"
+THEN: "then"
+ELSE: "else"
+DO: "do"
+WHILE: "while"
+PLUS: "+"
+PERIOD: "."
+
+ID: LETTER (LETTER | DIGIT)*
+NUM: DIGIT+
+
+LETTER: /[a-zA-Z_]+/
+DIGIT: /[0-9]+/
+
+WS: /[ \n\t\r]+/
+%ignore WS

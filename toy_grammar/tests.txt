@@ -1,0 +1,16 @@
+program a = {a = (a);}.
+program a = {a = a + a;}.
+program a = {a = a;}.
+program a = {a = a = a;}.
+program a = {a = 0;}.
+program a = {if a then sleep;}.
+program a = {if a then sleep else sleep;}.
+program a = {sleep; sleep;}.
+program a = {sleep;}.
+program a = {var a:bool; sleep;}.
+program a = {var a:bool; var a:bool;}.
+program a = {var a:bool;}.
+program a = {var a:int;}.
+program a = {while a do sleep;}.
+program a = {{};}.
+program a = {}.

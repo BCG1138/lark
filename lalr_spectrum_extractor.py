@@ -62,7 +62,7 @@ def get_rule_usage(parser, testcase_path):
                 rule = rule.strip()
                 production = production.strip()
                 #print((rule, production))
-                if (rule, production) in rules:
+                if (rule, production) in rules and (rule, production) not in rules_used:
                     rules_used.append((rule, production))
     try:
         # read parse history from _tmp_parse_history.txt
@@ -80,7 +80,8 @@ def get_rule_usage(parser, testcase_path):
             match = pattern.search(x)
             rule = match.group(1)
             production = match.group(2)
-            rules_used.insert(0, (rule, production))
+            if (rule, production) not in rules_used:
+                rules_used.insert(0, (rule, production))
     except:
         # if _tmp_parse_history.txt doesn't exist, no rules were applied
         pass
@@ -110,11 +111,11 @@ def run_testcase_dir(parser, directory, is_positive):
             elif result[0] == (not is_positive):
                 print(file_path + " failed")
                 for x in result[1]:
-                    # increment ep
+                    # increment ef
                     rule_metrics[x][2] += 1
                 for x in rules:
                     if x not in result[1]:
-                        # increment np
+                        # increment nf
                         rule_metrics[x][3] += 1
 
 def compile_and_write_results():
@@ -166,9 +167,18 @@ def run_special():
     run_testcase_dir(parser, "../alan-tests/special-failing", False)
     print("Done with special-failing")
 
-parser = create_parser("alan.lark")
-init_rules(parser)
-#r = get_rule_usage(parser, "test.alan")
+def run_quick():
+    run_testcase_dir(parser, "../alan-2022-examples/passing", True)
+    print("Done with passing")
+    run_testcase_dir(parser, "../alan-2022-examples/failing", False)
+    print("Done with failing")
 
-run_normal()
+parser = create_parser("toy_grammar/toy.lark")
+init_rules(parser)
+run_testcase_dir(parser, "toy_grammar/testsuite", True)
+
+
 compile_and_write_results()
+
+for x in rule_metrics:
+    print(str(x) + " : " + str(rule_metrics[x]))
