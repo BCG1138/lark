@@ -21,7 +21,7 @@ def create_parser(grammar_path):
     return parser
 
 
-def init_rules(parser):
+def init_rules_and_items(parser):
     # indexed by (rule, production) tuple, contains 4 values
     # which, in order, are ep, np, ef, nf
     for x in parser.rules:
@@ -32,9 +32,6 @@ def init_rules(parser):
         rules.append((rule, production))
         rule_metrics[(rule, production)] = [0, 0, 0, 0]
         rule_sus_scores[(rule, production)] = [0, 0, 0, 0]
-
-
-def init_items():
     for x in rules:
         num_tokens = len(str(x[1]).split())
         for i in range(num_tokens + 1):
@@ -132,7 +129,7 @@ def get_item_usage(parser, testcase_path):
         for x in state_stack:
             lstate = x
         pattern = r"<\w+\s*\: [\s\w*]*>"
-        matches = re.findall(pattern, str(x))
+        matches = re.findall(pattern, str(lstate))
         for r in matches:
             clean = str(r).strip('<>')
             rule, production = clean.split(":")
@@ -260,7 +257,7 @@ def rule_compile_and_write_results():
         # rank rules by sus scores
         tarantula_scores = []
         trules = copy.deepcopy(rules)
-        jaccarda_scores = []
+        jaccard_scores = []
         jrules = copy.deepcopy(rules)
         ochiai_scores = []
         orules = copy.deepcopy(rules)
@@ -268,7 +265,7 @@ def rule_compile_and_write_results():
         drules = copy.deepcopy(rules)
         for x in rules:
             tarantula_scores.append(rule_sus_scores[x][0])
-            jaccarda_scores.append(rule_sus_scores[x][1])
+            jaccard_scores.append(rule_sus_scores[x][1])
             ochiai_scores.append(rule_sus_scores[x][2])
             dstar_scores.append(rule_sus_scores[x][3])
         n = len(rules)
@@ -279,12 +276,12 @@ def rule_compile_and_write_results():
                     #forbidden swapping
                     tarantula_scores[j], tarantula_scores[j+1] = tarantula_scores[j+1], tarantula_scores[j]
                     trules[j], trules[j+1] = trules[j+1], trules[j]
-        # jaccarda
+        # jaccard
         for i in range(n):
             for j in range(0, n-i-1):
-                if jaccarda_scores[j] < jaccarda_scores[j+1]:
+                if jaccard_scores[j] < jaccard_scores[j+1]:
                     #forbidden swapping
-                    jaccarda_scores[j], jaccarda_scores[j+1] = jaccarda_scores[j+1], jaccarda_scores[j]
+                    jaccard_scores[j], jaccard_scores[j+1] = jaccard_scores[j+1], jaccard_scores[j]
                     jrules[j], jrules[j+1] = jrules[j+1], jrules[j]
         # ochiai
         for i in range(n):
@@ -305,9 +302,9 @@ def rule_compile_and_write_results():
         results.write("Ranking by tarantula\n")
         for i in range(n):
             results.write(str(trules[i]) + " : " + str(tarantula_scores[i]) + "\n")
-        results.write("\nRanking by jaccarda\n")
+        results.write("\nRanking by jaccard\n")
         for i in range(n):
-            results.write(str(jrules[i]) + " : " + str(jaccarda_scores[i]) + "\n")
+            results.write(str(jrules[i]) + " : " + str(jaccard_scores[i]) + "\n")
         results.write("\nRanking by ochiai\n")
         for i in range(n):
             results.write(str(orules[i]) + " : " + str(ochiai_scores[i]) + "\n")
@@ -350,7 +347,7 @@ def item_compile_and_write_results():
         # rank rules by sus scores
         tarantula_scores = []
         trules = copy.deepcopy(items)
-        jaccarda_scores = []
+        jaccard_scores = []
         jrules = copy.deepcopy(items)
         ochiai_scores = []
         orules = copy.deepcopy(items)
@@ -358,7 +355,7 @@ def item_compile_and_write_results():
         drules = copy.deepcopy(items)
         for x in items:
             tarantula_scores.append(item_sus_scores[x][0])
-            jaccarda_scores.append(item_sus_scores[x][1])
+            jaccard_scores.append(item_sus_scores[x][1])
             ochiai_scores.append(item_sus_scores[x][2])
             dstar_scores.append(item_sus_scores[x][3])
         n = len(items)
@@ -369,12 +366,12 @@ def item_compile_and_write_results():
                     #forbidden swapping
                     tarantula_scores[j], tarantula_scores[j+1] = tarantula_scores[j+1], tarantula_scores[j]
                     trules[j], trules[j+1] = trules[j+1], trules[j]
-        # jaccarda
+        # jaccard
         for i in range(n):
             for j in range(0, n-i-1):
-                if jaccarda_scores[j] < jaccarda_scores[j+1]:
+                if jaccard_scores[j] < jaccard_scores[j+1]:
                     #forbidden swapping
-                    jaccarda_scores[j], jaccarda_scores[j+1] = jaccarda_scores[j+1], jaccarda_scores[j]
+                    jaccard_scores[j], jaccard_scores[j+1] = jaccard_scores[j+1], jaccard_scores[j]
                     jrules[j], jrules[j+1] = jrules[j+1], jrules[j]
         # ochiai
         for i in range(n):
@@ -395,9 +392,9 @@ def item_compile_and_write_results():
         results.write("Ranking by tarantula\n")
         for i in range(n):
             results.write(str(trules[i]) + " : " + str(tarantula_scores[i]) + "\n")
-        results.write("\nRanking by jaccarda\n")
+        results.write("\nRanking by jaccard\n")
         for i in range(n):
-            results.write(str(jrules[i]) + " : " + str(jaccarda_scores[i]) + "\n")
+            results.write(str(jrules[i]) + " : " + str(jaccard_scores[i]) + "\n")
         results.write("\nRanking by ochiai\n")
         for i in range(n):
             results.write(str(orules[i]) + " : " + str(ochiai_scores[i]) + "\n")
@@ -451,15 +448,20 @@ def items_run_quick():
     item_run_testcase_dir(parser, "../alan-2022-examples/failing", False)
     print("Done with failing")
 
-parser = create_parser("toy_grammar/toy.lark")
-#parser = create_parser("alan.lark")
-init_rules(parser)
-init_items()
-item_run_testcase_dir(parser, "toy_grammar/testsuite", True)
+#parser = create_parser("toy_grammar/toy.lark")
+parser = create_parser("alan.lark")
+init_rules_and_items(parser)
 
-#result = get_item_usage(parser, "test2.txt")
-#for x in result[1]:
-#    print(x)
+#item_run_testcase_dir(parser, "toy_grammar/testsuite", True)
 
+items_run_quick()
 #item_run_testcase_dir(parser, "../alan-2022-examples/passing", True)
 item_compile_and_write_results()
+
+""" for x in items:
+    print(str(x) + " : " + str(item_metrics[x]))
+
+print("")
+
+for x in items:
+    print(str(x) + " : " + str(item_sus_scores[x])) """
