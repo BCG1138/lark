@@ -40,7 +40,7 @@ def init_rules_and_items(parser):
             item_sus_scores[(x, i)] = [0, 0, 0, 0]
 
 
-def get_rule_usage(parser, testcase_path):
+def get_rule_usage(parser, testcase_path, last_state_only=True):
     try:
         os.remove("_tmp_parse_history.txt")
     except:
@@ -62,18 +62,32 @@ def get_rule_usage(parser, testcase_path):
         successful_parse = False
         state_stack = e.interactive_parser.parser_state.state_stack
         lstate = ""
-        for x in state_stack:
-            lstate = x
-        pattern = r"<\w+\s*\:\s*[\w][ \w]*\s\*\s*[\w][ \w]*>"
-        matches = re.findall(pattern, str(lstate))
-        for r in matches:
-            r = str(r).replace("* ", "")
-            clean = str(r).strip('<>')
-            rule, production = clean.split(":")
-            rule = rule.strip()
-            production = production.strip()
-            if (rule, production) in rules and (rule, production) not in rules_used:
-                rules_used.append((rule, production))
+        if last_state_only:
+            for x in state_stack:
+                lstate = x
+            pattern = r"<\w+\s*\:\s*[\w][ \w]*\s\*\s*[\w][ \w]*>"
+            matches = re.findall(pattern, str(lstate))
+            for r in matches:
+                r = str(r).replace("* ", "")
+                clean = str(r).strip('<>')
+                rule, production = clean.split(":")
+                rule = rule.strip()
+                production = production.strip()
+                if (rule, production) in rules and (rule, production) not in rules_used:
+                    rules_used.append((rule, production))
+        else:
+            for x in state_stack:
+                lstate = x
+                pattern = r"<\w+\s*\:\s*[\w][ \w]*\s\*\s*[\w][ \w]*>"
+                matches = re.findall(pattern, str(lstate))
+                for r in matches:
+                    r = str(r).replace("* ", "")
+                    clean = str(r).strip('<>')
+                    rule, production = clean.split(":")
+                    rule = rule.strip()
+                    production = production.strip()
+                    if (rule, production) in rules and (rule, production) not in rules_used:
+                        rules_used.append((rule, production))
     try:
         # read parse history from _tmp_parse_history.txt
         with open("_tmp_parse_history.txt", 'r') as file:
@@ -104,7 +118,7 @@ def get_rule_usage(parser, testcase_path):
     return (successful_parse, rules_used)
 
 
-def get_item_usage(parser, testcase_path):
+def get_item_usage(parser, testcase_path, last_state_only=True):
     try:
         os.remove("_tmp_parse_history.txt")
     except:
@@ -126,21 +140,38 @@ def get_item_usage(parser, testcase_path):
         successful_parse = False
         state_stack = e.interactive_parser.parser_state.state_stack
         lstate = ""
-        for x in state_stack:
-            lstate = x
-        pattern = r"<\w+\s*\: [\s\w*]*>"
-        matches = re.findall(pattern, str(lstate))
-        for r in matches:
-            clean = str(r).strip('<>')
-            rule, production = clean.split(":")
-            rule = rule.strip()
-            production = production.strip()
-            item_list = production.split()
-            production = production.replace("* ", "")
-            count = item_list.index("*")
-            for i in range(count + 1):
-                if ((rule, production), i) in items and ((rule, production), i) not in items_used:
-                    items_used.append(((rule, production), i))
+        if last_state_only:
+            for x in state_stack:
+                lstate = x
+            pattern = r"<\w+\s*\: [\s\w*]*>"
+            matches = re.findall(pattern, str(lstate))
+            for r in matches:
+                clean = str(r).strip('<>')
+                rule, production = clean.split(":")
+                rule = rule.strip()
+                production = production.strip()
+                item_list = production.split()
+                production = production.replace("* ", "")
+                count = item_list.index("*")
+                for i in range(count + 1):
+                    if ((rule, production), i) in items and ((rule, production), i) not in items_used:
+                        items_used.append(((rule, production), i))
+        else:
+            for x in state_stack:
+                lstate = x
+                pattern = r"<\w+\s*\: [\s\w*]*>"
+                matches = re.findall(pattern, str(lstate))
+                for r in matches:
+                    clean = str(r).strip('<>')
+                    rule, production = clean.split(":")
+                    rule = rule.strip()
+                    production = production.strip()
+                    item_list = production.split()
+                    production = production.replace("* ", "")
+                    count = item_list.index("*")
+                    for i in range(count + 1):
+                        if ((rule, production), i) in items and ((rule, production), i) not in items_used:
+                            items_used.append(((rule, production), i))
     try:
         # read parse history from _tmp_parse_history.txt
         with open("_tmp_parse_history.txt", 'r') as file:
@@ -172,11 +203,11 @@ def get_item_usage(parser, testcase_path):
     return (successful_parse, items_used)
 
 
-def rule_run_testcase_dir(parser, directory, is_positive):
+def rule_run_testcase_dir(parser, directory, is_positive, last_state_only=True):
     for filename in os.listdir(directory):
         file_path = os.path.join(directory, filename)
         if os.path.isfile(file_path):
-            result = get_rule_usage(parser, file_path)
+            result = get_rule_usage(parser, file_path, last_state_only)
             # passed
             if result[0] == (is_positive):
                 for x in result[1]:
@@ -197,11 +228,11 @@ def rule_run_testcase_dir(parser, directory, is_positive):
                         # increment nf
                         rule_metrics[x][3] += 1
 
-def item_run_testcase_dir(parser, directory, is_positive):
+def item_run_testcase_dir(parser, directory, is_positive, last_state_only=True):
     for filename in os.listdir(directory):
         file_path = os.path.join(directory, filename)
         if os.path.isfile(file_path):
-            result = get_item_usage(parser, file_path)
+            result = get_item_usage(parser, file_path, last_state_only)
             # passed
             if result[0] == (is_positive):
                 for x in result[1]:
@@ -403,65 +434,97 @@ def item_compile_and_write_results():
             results.write(str(drules[i]) + " : " + str(dstar_scores[i]) + "\n")
 
 
-def rules_run_normal():
-    rule_run_testcase_dir(parser, "../alan-tests/passing", True)
+def rules_run_normal(parser, last_state_only=True):
+    rule_run_testcase_dir(parser, "../alan-tests/passing", True, last_state_only)
     print("Done with passing")
-    rule_run_testcase_dir(parser, "../alan-tests/failing0", False)
+    rule_run_testcase_dir(parser, "../alan-tests/failing0", False, last_state_only)
     print("Done with failing0")
-    rule_run_testcase_dir(parser, "../alan-tests/failing1", False)
+    rule_run_testcase_dir(parser, "../alan-tests/failing1", False, last_state_only)
     print("Done with failing1")
-    rule_run_testcase_dir(parser, "../alan-tests/failing2", False)
+    rule_run_testcase_dir(parser, "../alan-tests/failing2", False, last_state_only)
     print("Done with failing2")
 
-def rules_run_special():
-    rule_run_testcase_dir(parser, "../alan-tests/special-passing", True)
+def rules_run_special(parser, last_state_only=True):
+    rule_run_testcase_dir(parser, "../alan-tests/special-passing", True, last_state_only)
     print("Done with special-passing")
-    rule_run_testcase_dir(parser, "../alan-tests/special-failing", False)
+    rule_run_testcase_dir(parser, "../alan-tests/special-failing", False, last_state_only)
     print("Done with special-failing")
 
-def rules_run_quick():
-    rule_run_testcase_dir(parser, "../alan-2022-examples/passing", True)
+def rules_run_quick(parser, last_state_only=True):
+    rule_run_testcase_dir(parser, "../alan-2022-examples/passing", True, last_state_only)
     print("Done with passing")
-    rule_run_testcase_dir(parser, "../alan-2022-examples/failing", False)
+    rule_run_testcase_dir(parser, "../alan-2022-examples/failing", False, last_state_only)
     print("Done with failing")
 
 
-def items_run_normal():
-    item_run_testcase_dir(parser, "../alan-tests/passing", True)
+def items_run_normal(parser, last_state_only=True):
+    item_run_testcase_dir(parser, "../alan-tests/passing", True, last_state_only)
     print("Done with passing")
-    item_run_testcase_dir(parser, "../alan-tests/failing0", False)
+    item_run_testcase_dir(parser, "../alan-tests/failing0", False, last_state_only)
     print("Done with failing0")
-    item_run_testcase_dir(parser, "../alan-tests/failing1", False)
+    item_run_testcase_dir(parser, "../alan-tests/failing1", False, last_state_only)
     print("Done with failing1")
-    item_run_testcase_dir(parser, "../alan-tests/failing2", False)
+    item_run_testcase_dir(parser, "../alan-tests/failing2", False, last_state_only)
     print("Done with failing2")
 
-def items_run_special():
-    item_run_testcase_dir(parser, "../alan-tests/special-passing", True)
+def items_run_special(parser, last_state_only=True):
+    item_run_testcase_dir(parser, "../alan-tests/special-passing", True, last_state_only)
     print("Done with special-passing")
-    item_run_testcase_dir(parser, "../alan-tests/special-failing", False)
+    item_run_testcase_dir(parser, "../alan-tests/special-failing", False, last_state_only)
     print("Done with special-failing")
 
-def items_run_quick():
-    item_run_testcase_dir(parser, "../alan-2022-examples/passing", True)
+def items_run_quick(parser, last_state_only=True):
+    item_run_testcase_dir(parser, "../alan-2022-examples/passing", True, last_state_only)
     print("Done with passing")
-    item_run_testcase_dir(parser, "../alan-2022-examples/failing", False)
+    item_run_testcase_dir(parser, "../alan-2022-examples/failing", False, last_state_only)
     print("Done with failing")
 
-#parser = create_parser("toy_grammar/toy.lark")
-parser = create_parser("alan.lark")
-init_rules_and_items(parser)
 
-#item_run_testcase_dir(parser, "toy_grammar/testsuite", True)
+def toy_grammar_demo(level="rule", last_state_only=True):
+    parser = create_parser("toy_grammar/toy.lark")
+    init_rules_and_items(parser)
+    match level:
+        case "rule":
+            rule_run_testcase_dir(parser, "toy_grammar/testsuite", True, last_state_only)
+            rule_compile_and_write_results()
+        case "item":
+            item_run_testcase_dir(parser, "toy_grammar/testsuite", True, last_state_only)
+            item_compile_and_write_results()
+        case _:
+            print("Uh oh! You made a fucky wucky. A fucko boingo!")
+            return
 
-items_run_quick()
-#item_run_testcase_dir(parser, "../alan-2022-examples/passing", True)
-item_compile_and_write_results()
 
-""" for x in items:
-    print(str(x) + " : " + str(item_metrics[x]))
+def alan_grammar_demo(level="rule", last_state_only=True, test_suite="quick"):
+    parser = create_parser("alan.lark")
+    init_rules_and_items(parser)
+    match level:
+        case "rule":
+            match test_suite:
+                case "quick":
+                    rules_run_quick(parser, last_state_only)
+                case "normal":
+                    rules_run_normal(parser, last_state_only)
+                case _:
+                    print("Uh oh! You made a fucky wucky. A fucko boingo!")
+                    print(str(test_suite) + " is not a valid value for test_suite")
+                    return
+            rule_compile_and_write_results()
+        case "item":
+            match test_suite:
+                case "quick":
+                    items_run_quick(parser, last_state_only)
+                case "normal":
+                    items_run_normal(parser, last_state_only)
+                case _:
+                    print("Uh oh! You made a fucky wucky. A fucko boingo!")
+                    print(str(test_suite) + " is not a valid value for test_suite")
+                    return
+            item_compile_and_write_results()
+        case _:
+            print("Uh oh! You made a fucky wucky. A fucko boingo!")
+            print(str(level) + " is not a valid value for level")
+            return
 
-print("")
-
-for x in items:
-    print(str(x) + " : " + str(item_sus_scores[x])) """
+toy_grammar_demo(level="rule", last_state_only=True)
+#alan_grammar_demo(level="item", last_state_only=False, test_suite="quick")
